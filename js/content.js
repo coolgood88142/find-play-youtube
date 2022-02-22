@@ -1,150 +1,123 @@
+var youTubePlayer;
 window.onload = function () {
   let clickedViedo = null
+  let body = document.getElementsByTagName("body")[0]
+  let input = document.createElement('input')
+  input.id = 'YouTube-video-id'
+  input.type = 'hidden'
+  input.value = 'yPkS7yiTHP4'
+  input.pattern = '[_\-0-9A-Za-z]{11}'
 
-  // generate a table for each format
-  function generateTableRow(title, release, info, releaseDate, tags, link) {
-    generateTable( `
-      <tr>
-        <td>${title}</td>
-        <td>${release}</td>
-        <td>${info}</td>
-        <td>${releaseDate}</td>
-        <td>${tags}</td>
-        <td class="url">
-          <span class="link">${link}</span>
-          <span class="tooltip-text">Click to copy</span>
-        </td>
-      </tr>
-    `)
-  }
+  let div = document.createElement('div')
+  div.id = 'YouTube-player'
+  div.style.display = 'none'
+  body.appendChild(input)
+  body.appendChild(div)
+  onYouTubeIframeAPIReady()
+}
 
-  // access image from Pixabay , Pexels, Unsplash 
-  function generateSrcsetImages() {
-    console.log(clickedViedo)
-    const images = clickedViedo.srcset.split(', ')
-    return images.map(image => {
-      const url = image.split(' ')[0]
-      const size = image.split(' ')[1]
-      return generateTableRow(null, null, null, null, null, null)
-    }).join(' ')
-  }
-
-  // access image from Picjumbo or others
-  function generateSrcImage() {
-    
-    
-  }
-
-  function generateTbody(href) {
-    let key = 'AIzaSyAMfAMS2HiWv9jcN_HGCcn-eiC3aqBYdYg'
-    let vidioID = location.href.substring(href+1, location.href.length)
-    axios.get('https://www.googleapis.com/youtube/v3/videos?id='+ vidioID +'&type=video&key=' + key + '&part=snippet').then((response) => {
-      let data = response.data.items[0]
-
-      const title = data.snippet.title
-      const release = data.snippet.channelTitle
-      const info = data.snippet.description
-
-      let date = new Date(data.snippet.publishedAt);
-      const releaseDate = date.getFullYear() + "-" + ((date.getMonth() + 1) < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1) + "-" + (date.getDate() < 10 ? "0" + date.getDate() : date.getDate())
-      let tags = '';
-      data.snippet.tags.forEach(function(value){
-        tags += value + ',';
-      });
-
-      if(tags != ''){
-        tags = tags.substring(0, tags.length-1)
-      }
-
-      const link = 'https://www.youtube.com/watch?v=' + data.id
-      generateTableRow(title, release, info, releaseDate, tags, link)
-    }).catch((error) => {
-      if (error.response) {
-        console.log(error.response.data)
-        console.log(error.response.status)
-        console.log(error.response.headers)
-      } else {
-        console.log("Error", error.message)
-      }
-    })
-  }
-
-  function generateTable(tbodyInnerHTML) {
-    // replace the page with a created table containing links
-    document.querySelector('body').innerHTML = `
-      <section>
-        <div class="table-container mt-4 p-0 rounded-lg">
-          <table class="table mb-0">
-            <thead class="thead-dark">
-              <tr>
-                <th scope="col">標題</th>
-                <th scope="col">發佈者</th>
-                <th scope="col">影片資訊</th>
-                <th scope="col">發佈日期</th>
-                <th scope="col">標籤</th>
-                <th scope="col">連結</th>
-              </tr>
-            </thead>
-            <tbody class="text-secondary">
-              ${tbodyInnerHTML}
-            </tbody>
-          </table>
-        </div>
-        <!--Reload Button-->
-        <div class="button-panel">
-          <input type="button" id="reload" value="回上一頁" onClick="window.location.reload()"/>
-        </div>
-      </section>
-    `
-  }
-
-  function copyUrl() {
-    const link = event.target.closest('.url').firstElementChild
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(link);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    document.execCommand('copy');
-    selection.removeAllRanges();
-  }
-
-  function showErrorMessage() {
-    const errorMessage = `
-      <div class="alert-message">
-        <span class="closebtn">&times;</span> 
-        Something went wrong. Please try again on the image!
-      </div>
-    `
-    // insert alert message to the top of the page
-    document.querySelector('body').insertAdjacentHTML('afterbegin', errorMessage)
-    // close the message when clicking the close button
-    document.querySelector('.closebtn').addEventListener('click', event => event.target.parentElement.remove())
-  }
-
-  function generateReport(request, sender, sendResponse) {
-    // show error message if getUrl is false or clickImg is null
-    if (!request.getUrl || !clickedViedo) { return showErrorMessage() }
-    // generate tbody
-    //根據目前的網址來確認是否為YT，不是YT就顯示訊息，如果是YT的嵌入式影片要另外抓資料
-    if(clickedViedo.baseURI.indexOf('https://www.youtube.com/watch') != -1){
-      generateTbody(location.href.indexOf('='))
-    }else if(clickedViedo.localName == 'iframe'){
-      generateTbody(clickedViedo.src.indexOf('='))
-    }else{
-      alert('請選擇Youtube網站影片')
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    console.log(request)
+    if( request.videoId !== undefined && request.videoId !== null ) {
+      document.getElementById('YouTube-video-id').value = request.videoId
+      youTubePlayer.cueVideoById({suggestedQuality: 'tiny',
+                                  videoId: request.videoId
+                                });
+      youTubePlayer.pauseVideo();
+    } else if(request.backgroundVideoPlay !== undefined && request.backgroundVideoPlay !== null ){
+      youTubePlayerPlay()
+    } else if(request.backgroundVideoPause !== undefined && request.backgroundVideoPause !== null ){
+      youTubePlayerPause()
     }
-    // generate the report with tbody
-    // generateTable(tbodyInnerHTML)
-    // listen to url click to copy url
-    document.querySelectorAll('.url').forEach(link => link.addEventListener('click', copyUrl))
+  }
+);
+
+
+function onYouTubeIframeAPIReady() {
+  'use strict';
+  var inputVideoId = document.getElementById('YouTube-video-id');
+  var videoId = inputVideoId.value;
+  var suggestedQuality = 'tiny';
+  var height = 180;
+  var width = 320;
+  var youTubePlayerVolumeItemId = 'YouTube-player-volume';
+
+
+  function onError(event) {
+      youTubePlayer.personalPlayer.errors.push(event.data);
   }
 
-  // listen to contextmenu being opened and save the target image
-  document.addEventListener('contextmenu', event => clickedViedo = event.target)
+
+  function onReady(event) {
+      var player = event.target;
+
+      player.loadVideoById({suggestedQuality: suggestedQuality,
+                            videoId: videoId
+                           });
+      player.pauseVideo();
+  }
 
 
-  // listen to message request from the extension: background.js
-  chrome.runtime.onMessage.addListener(generateReport)
+  function onStateChange(event) {
+      var volume = Math.round(event.target.getVolume());
+      var volumeItem = document.getElementById(youTubePlayerVolumeItemId);
 
+      if (volumeItem && (Math.round(volumeItem.value) != volume)) {
+          volumeItem.value = volume;
+      }
+  }
+
+
+  youTubePlayer = new YT.Player('YouTube-player',
+                                {videoId: videoId,
+                                 height: height,
+                                 width: width,
+                                 playerVars: {'autohide': 0,
+                                              'cc_load_policy': 0,
+                                              'controls': 2,
+                                              'disablekb': 1,
+                                              'iv_load_policy': 3,
+                                              'modestbranding': 1,
+                                              'rel': 0,
+                                              'showinfo': 0,
+                                              'start': 3
+                                             },
+                                 events: {'onError': onError,
+                                          'onReady': onReady,
+                                          'onStateChange': onStateChange
+                                         }
+                                });
+
+  // Add private data to the YouTube object
+  youTubePlayer.personalPlayer = {'currentTimeSliding': false,
+                                  'errors': []};
+}
+
+function youTubePlayerActive() {
+  'use strict';
+
+  return youTubePlayer && youTubePlayer.hasOwnProperty('getPlayerState');
+}
+
+/**
+ * Pause.
+ */
+ function youTubePlayerPause() {
+  'use strict';
+
+  if (youTubePlayerActive()) {
+      youTubePlayer.pauseVideo();
+  }
+}
+
+/**
+ * Play.
+ */
+ function youTubePlayerPlay() {
+  'use strict';
+
+  if (youTubePlayerActive()) {
+      youTubePlayer.playVideo();
+  }
 }

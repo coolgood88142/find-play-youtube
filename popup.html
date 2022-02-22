@@ -7,30 +7,40 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Placeholder Image</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.css">
-  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> -->
   <link href="https://fonts.googleapis.com/css?family=Cabin+Sketch:400,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/pop.css">
-  <link rel="stylesheet" href="css/content.css">
+  <!-- <link rel="stylesheet" href="css/content.css"> -->
   <style>
-
-  </style>
+    .controller{
+        padding-top: 15px;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+</style>
 </head>
 
 <body>
   <!--Find Royalty Free Viedo-->
-  <section class="bg-white border rounded p-2">
+  <section class="bg-white border rounded p-2" style="background: #4CA1AF;">
     <form id='search-viedo'>
-      <legend class='text-secondary'>搜尋Youtube影片</legend>
+      <legend class='text-secondary'>Youtube播放器</legend>
       <!--Second row-->
       <div class="input-group input-group-sm my-2 ">
-        <input type="text" class="form-control form-control-sm" id="search-string" placeholder="keyWord" required>
+        <input type="text" class="form-control form-control-sm" id="search-string" placeholder="請輸入youtube影片網址" required>
         <div class="input-group-append">
           <button class="btn btn-primary" type="submit" id='open-all'>搜尋</button>
         </div>
       </div>
 
-      <div id="viedo"></div>
+      <img id="playVideoImg" width="320" height="180" src="" style="display: none;"/>
+
+      <input id="YouTube-video-id" type="hidden" value="" size="12" pattern="[_\-0-9A-Za-z]{11}" onchange="youTubePlayerChangeVideoId();">
+      <!--撥放-->
+      <div class="input-group input-group-sm my-2 "></div>
+      <span id="play_pause" class="controller" title="Click to play / pause song" style="display: none;"><img id="playImg" src="baseline-play_arrow-24px.svg"/><img id="pauseImg" src="baseline-pause-24px.svg" style="display: none;"/></span>
+      </div>
     </form>
   </section>
 
@@ -40,6 +50,7 @@
   <script src="js/popper.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
   <script src="js/moment.js"></script>
+  <script src="script.js"></script>
   <link rel="stylesheet" href="css/bootstrap.min.css">
 
 </body>
