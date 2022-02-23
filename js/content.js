@@ -66,6 +66,12 @@ function onYouTubeIframeAPIReady() {
       if (volumeItem && (Math.round(volumeItem.value) != volume)) {
           volumeItem.value = volume;
       }
+
+      var player = event.target;
+      if (event.data == YT.PlayerState.ENDED) {
+        player.seekTo(0);
+        player.playVideo();
+      }
   }
 
 
